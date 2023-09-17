@@ -1,5 +1,6 @@
 package com.sadev.security.controller;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sadev.security.dto.UserDtoResponse;
 import com.sadev.security.model.User;
 import com.sadev.security.repository.UserRepository;
 
@@ -24,23 +26,30 @@ public class UserController {
 	private UserRepository userRepository;
 	
 	@GetMapping("/users")
-	public ResponseEntity<List<User>> getAllUsers(){
+	public ResponseEntity<List<UserDtoResponse>> getAllUsers(){
 		
 		List<User> users = userRepository.findAll();
+		List<UserDtoResponse> usersDto = new ArrayList<>();
+		
 		if(users.isEmpty()) {			
 			return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
 		}
-        return ResponseEntity.status(HttpStatus.OK).body(users);
+		
+		for (User user : users) {
+			usersDto.add(new UserDtoResponse(user.getId(), user.getUsername()));
+		}
+        return ResponseEntity.status(HttpStatus.OK).body(usersDto);
 
 	}
 	
 	@GetMapping("/users/{id}")
-	public ResponseEntity<User> getUserById(@PathVariable("id") Long id){
+	public ResponseEntity<UserDtoResponse> getUserById(@PathVariable("id") Long id){
 		
 		Optional<User> optUser = userRepository.findById(id);
 		if(optUser.isPresent()) {
 			User user = optUser.get();
-		return ResponseEntity.status(HttpStatus.OK).body(user);
+			new UserDtoResponse(user.getId(), user.getUsername());
+		return ResponseEntity.status(HttpStatus.OK).body(new UserDtoResponse(user.getId(), user.getUsername()));
 		}
         return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
 
